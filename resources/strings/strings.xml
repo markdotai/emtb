@@ -1,0 +1,9 @@
+<strings>
+    <string id="AppName">emtb</string>
+
+    <string id="LastMACTitle">Last EMTB MAC Address</string>
+    <string id="LastLockTitle">Lock to MAC Address</string>
+    <string id="LabelTitle">Label</string>
+    <string id="ShowBatteryTitle">Show Battery</string>
+    <string id="ShowModeTitle">Show Assist Mode</string>
+</strings>

@@ -1,0 +1,23 @@
+<settings>
+
+    <setting propertyKey="@Properties.LastMAC" title="@Strings.LastMACTitle">
+        <settingConfig type="alphaNumeric" maxLength="20" />
+    </setting>
+
+    <setting propertyKey="@Properties.LastLock" title="@Strings.LastLockTitle">
+        <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.Label" title="@Strings.LabelTitle">
+        <settingConfig type="alphaNumeric" maxLength="40" />
+    </setting>
+
+    <setting propertyKey="@Properties.ShowBattery" title="@Strings.ShowBatteryTitle">
+        <settingConfig type="boolean" />
+    </setting>
+
+    <setting propertyKey="@Properties.ShowMode" title="@Strings.ShowModeTitle">
+        <settingConfig type="boolean" />
+    </setting>
+
+</settings>
