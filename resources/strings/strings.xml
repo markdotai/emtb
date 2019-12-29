@@ -4,6 +4,13 @@
     <string id="LastMACTitle">Last EMTB MAC Address</string>
     <string id="LastLockTitle">Lock to MAC Address</string>
     <string id="LabelTitle">Label</string>
-    <string id="ShowBatteryTitle">Show Battery</string>
-    <string id="ShowModeTitle">Show Assist Mode</string>
+    <string id="Item1Title">Item 1</string>
+    <string id="Item2Title">Item 2</string>
+    <string id="Item3Title">Item 3</string>
+
+    <string id="ShowOff">Off</string>
+    <string id="ShowBattery">Battery</string>
+    <string id="ShowModeName">Mode Name</string>
+    <string id="ShowModeLetter">Mode Letter</string>
+    <string id="ShowModeNumber">Mode Number</string>
 </strings>

@@ -3,7 +3,8 @@
     <property id="LastMAC" type="string"></property>			<!-- last MAC address -->
     <property id="LastLock" type="boolean">false</property>		<!-- lock to last -->
     <property id="Label" type="string">EMTB STEPS</property>	<!-- label -->
-    <property id="ShowBattery" type="boolean">true</property>	<!-- show battery -->
-    <property id="ShowMode" type="boolean">false</property>		<!-- show assist mode -->
+    <property id="Item1" type="number">1</property>				<!-- default show battery -->
+    <property id="Item2" type="number">0</property>				<!-- default off -->
+    <property id="Item3" type="number">0</property>				<!-- default off -->
 
 </properties>
