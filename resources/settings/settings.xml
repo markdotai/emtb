@@ -19,6 +19,7 @@
             <listEntry value="2">@Strings.ShowModeName</listEntry>
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="5">@Strings.ShowGear</listEntry>
         </settingConfig>
     </setting>
 
@@ -29,6 +30,7 @@
             <listEntry value="2">@Strings.ShowModeName</listEntry>
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="5">@Strings.ShowGear</listEntry>
         </settingConfig>
     </setting>
 
@@ -39,6 +41,7 @@
             <listEntry value="2">@Strings.ShowModeName</listEntry>
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="5">@Strings.ShowGear</listEntry>
         </settingConfig>
     </setting>
 

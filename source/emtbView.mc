@@ -9,62 +9,62 @@ using Application.Storage as applicationStorage;
 //DataField.initialize();
 //
 // This version is easier for testing/developing and for displaying (multiple) long strings
-class baseView2 extends WatchUi.DataField
-{
-	var displayString = "";
-	
-    function initialize()
-    {
-        DataField.initialize();
-    }
-
-    function setLabelInInitialize(s)
-    {
-    	// do nothing - must be drawn by subclass
-    }
-
-    // Set your layout here. Anytime the size of obscurity of
-    // the draw context is changed this will be called.
-    function onLayout(dc)
-    {
-		//var obscurityFlags = DataField.getObscurityFlags();
-		//if (obscurityFlags == (OBSCURE_TOP | OBSCURE_LEFT))
-		//{
-		//}
-		//else if (obscurityFlags == (OBSCURE_TOP | OBSCURE_RIGHT))
-		//{
-		//}
-		//else if (obscurityFlags == (OBSCURE_BOTTOM | OBSCURE_LEFT))
-		//{
-		//}
-		//else if (obscurityFlags == (OBSCURE_BOTTOM | OBSCURE_RIGHT))
-		//{
-		//}
-		//else
-		//{
-		//}
-
-        return true;
-    }
-
-	// This method is called once per second and automatically provides Activity.Info to the DataField object for display or additional computation.
-    function compute(info)
-    {
-    	// do nothing
-   	}
-
-    // Display the value you computed here. This will be called once a second when the data field is visible.
-    function onUpdate(dc)
-    {
-        dc.setColor(Graphics.COLOR_TRANSPARENT, getBackgroundColor());
-        dc.clear();
-
-        dc.setColor((getBackgroundColor()==Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
-
-		var s = Graphics.fitTextToArea(displayString, Graphics.FONT_SYSTEM_XTINY, 200, 240, true);
-        dc.drawText(120, 120, Graphics.FONT_SYSTEM_XTINY, s, Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
-    }
-}
+//class baseView2 extends WatchUi.DataField
+//{
+//	var displayString = "";
+//	
+//	function initialize()
+//	{
+//		DataField.initialize();
+//	}
+//
+//	function setLabelInInitialize(s)
+//	{
+//		// do nothing - must be drawn by subclass
+//	}
+//
+//	// Set your layout here. Anytime the size of obscurity of
+//	// the draw context is changed this will be called.
+//	function onLayout(dc)
+//	{
+//		//var obscurityFlags = DataField.getObscurityFlags();
+//		//if (obscurityFlags == (OBSCURE_TOP | OBSCURE_LEFT))
+//		//{
+//		//}
+//		//else if (obscurityFlags == (OBSCURE_TOP | OBSCURE_RIGHT))
+//		//{
+//		//}
+//		//else if (obscurityFlags == (OBSCURE_BOTTOM | OBSCURE_LEFT))
+//		//{
+//		//}
+//		//else if (obscurityFlags == (OBSCURE_BOTTOM | OBSCURE_RIGHT))
+//		//{
+//		//}
+//		//else
+//		//{
+//		//}
+//
+//		return true;
+//	}
+//
+//	// This method is called once per second and automatically provides Activity.Info to the DataField object for display or additional computation.
+//	function compute(info)
+//	{
+//		// do nothing
+//	}
+//
+//	// Display the value you computed here. This will be called once a second when the data field is visible.
+//	function onUpdate(dc)
+//	{
+//		dc.setColor(Graphics.COLOR_TRANSPARENT, getBackgroundColor());
+//		dc.clear();
+//
+//		dc.setColor((getBackgroundColor()==Graphics.COLOR_BLACK) ? Graphics.COLOR_WHITE : Graphics.COLOR_BLACK, Graphics.COLOR_TRANSPARENT);
+//
+//		var s = Graphics.fitTextToArea(displayString, Graphics.FONT_SYSTEM_XTINY, 200, 240, true);
+//		dc.drawText(120, 120, Graphics.FONT_SYSTEM_XTINY, s, Graphics.TEXT_JUSTIFY_CENTER|Graphics.TEXT_JUSTIFY_VCENTER);
+//	}
+//}
 
 //
 // or use
@@ -82,23 +82,23 @@ class baseView extends WatchUi.SimpleDataField
 {
 	var displayString = "";
 	
-    function initialize()
-    {
-        SimpleDataField.initialize();
+	function initialize()
+	{
+		SimpleDataField.initialize();
 
-    	//label = "Wheee";		// seems this has to be set in initialize() and can't be changed later
-    }
+		//label = "Wheee";		// seems this has to be set in initialize() and can't be changed later
+	}
     
-    function setLabelInInitialize(s)
-    {
-    	label = s;
-    }
+	function setLabelInInitialize(s)
+	{
+		label = s;
+	}
 
 	// This method is called once per second and automatically provides Activity.Info to the DataField object for display or additional computation.
-    function compute(info)
-    {
-    	return displayString;
-   	}
+	function compute(info)
+	{
+		return displayString;
+	}
 }
 
 class emtbView extends baseView
@@ -112,6 +112,7 @@ class emtbView extends baseView
 
 	var batteryValue = -1;
 	var modeValue = -1;
+	var gearValue = -1;
 
 	const secondsWaitBattery = 15;
 	var secondsSinceReadBattery = secondsWaitBattery;
@@ -144,6 +145,24 @@ class emtbView extends baseView
 		return v;
 	}
 	
+	function propertiesGetNumber(p)
+	{
+		var v = applicationProperties.getValue(p);
+		if ((v == null) || (v instanceof Boolean))
+		{
+			v = 0;
+		}
+		else if (!(v instanceof Number))
+		{
+			v = v.toNumber();
+			if (v == null)
+			{
+				v = 0;
+			}
+		}
+		return v;
+	}
+
 	function propertiesGetString(p)
 	{	
 		var v = applicationProperties.getValue(p);
@@ -160,9 +179,9 @@ class emtbView extends baseView
 
 	function getSettings()
 	{
-    	showList[0] = propertiesGetBoolean("Item1");
-    	showList[1] = propertiesGetBoolean("Item2");
-    	showList[2] = propertiesGetBoolean("Item3");
+    	showList[0] = propertiesGetNumber("Item1");
+    	showList[1] = propertiesGetNumber("Item2");
+    	showList[2] = propertiesGetNumber("Item3");
     	
 		lastLock = propertiesGetBoolean("LastLock");
 		lastMAC = propertiesGetString("LastMAC");
@@ -207,6 +226,11 @@ class emtbView extends baseView
     // Note that compute() and onUpdate() are asynchronous, and there is no guarantee that compute() will be called before onUpdate().
     function compute(info)
     {
+    	// quick test values
+		//showList[0] = 1;	// battery
+		//showList[1] = 2;	// mode
+		//showList[2] = 5;	// gear
+    
     	var showBattery = (showList[0]==1 || showList[1]==1 || showList[2]==2);
     	if (showBattery)
     	{
@@ -249,7 +273,7 @@ class emtbView extends baseView
 
 					case 1:		// battery
 					{
-	    				displayString += ((displayString.length()>0)?" ":"") + ((batteryValue>=0) ? batteryValue.toNumber() : "--") + "%";
+	    				displayString += ((displayString.length()>0)?" ":"") + ((batteryValue>=0) ? batteryValue : "--") + "%";
 						break;
 					}
 
@@ -267,7 +291,13 @@ class emtbView extends baseView
 
 					case 4:		// mode number
 					{
-	    				displayString += ((displayString.length()>0)?" ":"") + ((modeValue>=0) ? modeValue.toNumber() : "-");
+	    				displayString += ((displayString.length()>0)?" ":"") + ((modeValue>=0) ? modeValue : "-");
+						break;
+					}
+
+					case 5:		// gear
+					{
+	    				displayString += ((displayString.length()>0)?" ":"") + ((gearValue>=0) ? gearValue : "-");
 						break;
 					}
 				}
@@ -298,6 +328,7 @@ class emtbDelegate extends Ble.BleDelegate
 	{
 		mainView.batteryValue = -1;
 		mainView.modeValue = -1;
+		mainView.gearValue = -1;
 
 		state = State_Connecting;
 		wantStartScanning = true;
@@ -741,10 +772,10 @@ class emtbDelegate extends Ble.BleDelegate
 				{
 					mainView.modeValue = value[1].toNumber();	// and it is the 2nd byte of the array
 				}
-//				else if (value.size()==17)
-//				{
-//					mainView.gearValue = value[5].toNumber();
-//				}
+				else if (value.size()==17)
+				{
+					mainView.gearValue = value[5].toNumber();
+				}
 			}
 		}
 	}
