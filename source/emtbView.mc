@@ -8,7 +8,7 @@ using Application.Storage as applicationStorage;
 //class emtbView extends WatchUi.DataField
 //DataField.initialize();
 //
-// This version is easier for testing/developing and for displaying (multiple) long strings
+// This base class is easier for testing/developing and for displaying (multiple) long strings
 //class baseView2 extends WatchUi.DataField
 //{
 //	var displayString = "";
@@ -77,7 +77,7 @@ using Application.Storage as applicationStorage;
 // No onLayout() and onUpdate()
 // Just return a value from compute() which will be displayed for us ... 
 //
-// This version is easier for a release version as we don't need to worry about all display formats for all devices
+// This base class is easier for a release version as we don't need to worry about all display formats for all devices
 class baseView extends WatchUi.SimpleDataField
 {
 	var displayString = "";
@@ -103,18 +103,18 @@ class baseView extends WatchUi.SimpleDataField
 
 class emtbView extends baseView
 {
-	var thisView;
-	var bleHandler;
+	var thisView;		// reference to self, lovely
+	var bleHandler;		// the BLE delegate
 	
-	var showList = [0, 0, 0];
-	var lastLock = false;
-	var lastMACArray = null;
+	var showList = [0, 0, 0];	// 3 user settings for which values to show
+	var lastLock = false;		// user setting for lock to MAC address (or not)
+	var lastMACArray = null;	// byte array of MAC address of bike
 
-	var batteryValue = -1;
-	var modeValue = -1;
-	var gearValue = -1;
+	var batteryValue = -1;		// batter % to display
+	var modeValue = -1;			// assist mode to display
+	var gearValue = -1;			// gear number to display
 
-	const secondsWaitBattery = 15;
+	const secondsWaitBattery = 15;		// only read the battery value every 15 seconds
 	var secondsSinceReadBattery = secondsWaitBattery;
 
 	var modeNames = [
@@ -133,8 +133,9 @@ class emtbView extends baseView
 		"W",
 	];
 
-	var connectCounter = 0;
+	var connectCounter = 0;		// number of seconds spent scanning/connecting to a bike
 	
+	// Safely read a boolean value from user settings
 	function propertiesGetBoolean(p)
 	{
 		var v = applicationProperties.getValue(p);
@@ -145,6 +146,7 @@ class emtbView extends baseView
 		return v;
 	}
 	
+	// Safely read a number value from user settings
 	function propertiesGetNumber(p)
 	{
 		var v = applicationProperties.getValue(p);
@@ -163,6 +165,7 @@ class emtbView extends baseView
 		return v;
 	}
 
+	// Safely read a string value from user settings
 	function propertiesGetString(p)
 	{	
 		var v = applicationProperties.getValue(p);
@@ -177,7 +180,8 @@ class emtbView extends baseView
 		return v;
 	}
 
-	function getSettings()
+	// read the user settings and store locally
+	function getUserSettings()
 	{
     	showList[0] = propertiesGetNumber("Item1");
     	showList[1] = propertiesGetNumber("Item2");
@@ -185,6 +189,8 @@ class emtbView extends baseView
     	
 		lastLock = propertiesGetBoolean("LastLock");
 		
+		// convert the MAC address string to a byte array
+		// (if the string is an invalid format, e.g. contains the letter Z, then the byte array will be null)
 		lastMACArray = null;
 		var lastMAC = propertiesGetString("LastMAC");
 		try
@@ -200,6 +206,7 @@ class emtbView extends baseView
 		}
 	}
 
+	// Remember the current MAC address byte array, and also convert it to a string and store in the user settings 
 	function saveLastMACAddress(newMACArray)
 	{
 		if (newMACArray!=null)
@@ -224,14 +231,15 @@ class emtbView extends baseView
 		// label can only be set in initialize so don't bother storing it
 		setLabelInInitialize(propertiesGetString("Label"));
 
-		getSettings();
+		getUserSettings();
     }
 
 	// called by app when settings change
 	function onSettingsChanged()
 	{
-		getSettings();
+		getUserSettings();
 	
+		// do some stuff in case user has changed the MAC address or the lock flag
 		if (bleHandler!=null)
 		{
 			// if lastLock or lastMAC get changed dynamically while the field is running then should check if current bike connection is ok
@@ -247,6 +255,7 @@ class emtbView extends baseView
     	WatchUi.requestUpdate();   // update the view to reflect changes
 	}
 
+	// remember a reference to ourself as it's useful, but can't see a way in CIQ to access this otherwise?! 
 	function setSelf(theView)
 	{
 		thisView = theView;
@@ -342,30 +351,33 @@ class emtbView extends baseView
 				}
 			}
 		}
-				
+		
 		return baseView.compute(info);	// if a SimpleDataField then this will return the string/value to display
     }
 }
 
+// This is the BLE delegate class
+// I've just added all my BLE related stuff to here too
 class emtbDelegate extends Ble.BleDelegate
 {
 	var mainView;
 
 	enum
 	{
-		State_Init,
-		State_Connecting,
-		State_Idle,
-		State_Disconnected,
+		State_Init,			// starting up
+		State_Connecting,	// scanning, choosing & connecting to a bike
+		State_Idle,			// reading data from our chosen bike
+		State_Disconnected,	// we've disconnected (so will need to scan etc again)
 	}
 	
 	var state = State_Init;
 
-	var connectedMACArray = null; 
+	var connectedMACArray = null;	// MAC address byte array of bike we are (successfully) connected to 
 
-	var currentScanning = false;
-	var wantScanning = false;
+	var currentScanning = false;	// scanning turned on?	
+	var wantScanning = false;		// do we want it on?
 
+	// start the process of scanning for a bike to connect to
 	function startConnecting()
 	{
 		mainView.batteryValue = -1;
@@ -384,16 +396,20 @@ class emtbDelegate extends Ble.BleDelegate
 		currentNotifyMode = false;
 	}
 
+	// in the process of scanning & choosing a bike?
 	function isConnecting()
 	{
 		return (state==State_Connecting);
 	}
 	
+	// successfully connected to our chosen bike?
 	function isConnected()
 	{
 		return (state==State_Idle);
 	}
 	
+	// Can only read the MAC address after BLE pairing to a bike (which we do while scanning)
+	// this function will start a read
 	function startReadingMAC()
 	{
 		if (readMACScanResult!=null)
@@ -419,10 +435,12 @@ class emtbDelegate extends Ble.BleDelegate
 		}
 	}
 	
+	// Called after successfully reading a MAC address from the currently paired bike (during scanning)
 	function completeReadMAC(readMACArray)
 	{
 		if (readMACScanResult!=null)
 		{
+			// You are the device I'm looking for ...
 			var foundDevice = (!mainView.lastLock || mainView.lastMACArray==null || sameMACArray(mainView.lastMACArray, readMACArray));
 			if (foundDevice)
 			{
@@ -438,7 +456,7 @@ class emtbDelegate extends Ble.BleDelegate
 			}
 			else
 			{
-				failedReadMACScan();
+				failedReadMACScan();	// or you're not the device I'm looking for ...
 			}
 		}
 	}
@@ -455,16 +473,8 @@ class emtbDelegate extends Ble.BleDelegate
 		}
 	}
 	
-	var wantReadBattery = false;
-	var waitingRead = false;
-	
-	function requestReadBattery()
-	{
-		wantReadBattery = true;
-	}
-	
-	var readMACScanResult = false;
-	var readMACCounter = 0;		// number of times we have started reading MAC for the current readMACScanResult
+	var readMACScanResult = false;			// this is the scan result that we are currently reading the MAC address of (to determine if it is the correct bike)
+	var readMACCounter = 0;					// number of times we have started reading MAC for the current readMACScanResult
 	const readMACCounterMaxAllowed = 5;		// number of times we have started reading MAC for the current readMACScanResult
 
 	function sameMACArray(a, b)	// pass in 2 byte arrays
@@ -485,16 +495,27 @@ class emtbDelegate extends Ble.BleDelegate
 		return true;
 	}
 	
-	var wantNotifyMode = false;
-	var waitingWrite = false;
-	var writingNotifyMode = false;
-	var currentNotifyMode = false;
+	var wantReadBattery = false;
+	var waitingRead = false;
 	
+	// call this when you want a battery reading
+	function requestReadBattery()
+	{
+		wantReadBattery = true;
+	}
+	
+	var wantNotifyMode = false;			// want notifications on?
+	var waitingWrite = false;			// waiting for the write action to complete (which turns on or off the notifications)
+	var writingNotifyMode = false;		// the on/off state we are currently in the process of writing
+	var currentNotifyMode = false;		// the current on/off state (that we know from completed writes) 
+	
+	// call this to turn on/off notifications for the mode/gear/other data blocks 
    	function requestNotifyMode(wantMode)
    	{
    		wantNotifyMode = wantMode;
    	}
    	
+   	// initialize this delegate!
     function initialize(theView)
     {
         mainView = theView;
@@ -521,7 +542,7 @@ class emtbDelegate extends Ble.BleDelegate
 				// waiting for onScanResults() to be called
 				// and for it to decide to pair to something
 				//
-    			// if scanning takes too long, then cancel it and try again in "a while"?
+    			// Maybe if scanning takes too long, then cancel it and try again in "a while"?
     			// When View.onShow() is next called? (If user can switch between different pages ...)
 				break;
 			}
@@ -538,11 +559,12 @@ class emtbDelegate extends Ble.BleDelegate
 				}
 				else if (!waitingRead && !waitingWrite)
 				{
+					// do a read or write to the BLE device if we need to and nothing else is active
 					if (wantReadBattery)
 					{
 						if (bleReadBattery())
 						{
-							wantReadBattery = false;
+							wantReadBattery = false;	// since we've started reading it
 							waitingRead = true;
 						}
 						else
@@ -666,6 +688,7 @@ class emtbDelegate extends Ble.BleDelegate
 		}
     }
     
+    // tells the BLE device if we want mode/gear notifications on or off 
     function bleWriteNotifications(wantOn)
     {
        	var startedWrite = false;
@@ -790,7 +813,7 @@ class emtbDelegate extends Ble.BleDelegate
         return false;
     }
 
-    var scannedList = [];
+    var scannedList = [];				// array of scan results that have been tested and deemed not worthy of connecting to
     const maxScannedListSize = 10;		// choose a max size just in case
 
 	function addToScannedList(r)
@@ -810,6 +833,7 @@ class emtbDelegate extends Ble.BleDelegate
     	scannedList = new[0];	// new zero length array
 	}
 	
+	// If a scan is running this will be called when new ScanResults are received
     function onScanResults(scanResults)
     {
     	//System.println("onScanResults");
@@ -819,7 +843,7 @@ class emtbDelegate extends Ble.BleDelegate
 			return;
 		}
 
-		var newList = [];	// new devices to connect to
+		var newList = [];	// build array of new (unknown) devices to connect to
 
     	for (;;)
     	{
