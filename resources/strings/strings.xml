@@ -1,5 +1,5 @@
 <strings>
-    <string id="AppName">emtb</string>
+    <string id="AppName">STEPS EMTB Data</string>
 
     <string id="LastMACTitle">Last EMTB MAC Address</string>
     <string id="LastLockTitle">Lock to MAC Address</string>

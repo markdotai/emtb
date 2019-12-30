@@ -108,7 +108,7 @@ class emtbView extends baseView
 	
 	var showList = [0, 0, 0];
 	var lastLock = false;
-	var lastMAC = "";
+	var lastMACArray = null;
 
 	var batteryValue = -1;
 	var modeValue = -1;
@@ -184,10 +184,37 @@ class emtbView extends baseView
     	showList[2] = propertiesGetNumber("Item3");
     	
 		lastLock = propertiesGetBoolean("LastLock");
-		lastMAC = propertiesGetString("LastMAC");
 		
-		// if lastLock or lastMAC get changed dynamically while the field is running
-		// then should really handle it in some way - but we don't for now!
+		lastMACArray = null;
+		var lastMAC = propertiesGetString("LastMAC");
+		try
+		{
+			if (lastMAC.length()>0)
+			{
+	    		lastMACArray = StringUtil.convertEncodedString(lastMAC, {:fromRepresentation => StringUtil.REPRESENTATION_STRING_HEX, :toRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY});
+	    	}
+		}
+		catch (e)
+		{
+	    	//System.println("err");
+		}
+	}
+
+	function saveLastMACAddress(newMACArray)
+	{
+		if (newMACArray!=null)
+		{
+			lastMACArray = newMACArray;
+			try
+			{
+		    	var s = StringUtil.convertEncodedString(newMACArray, {:fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY, :toRepresentation => StringUtil.REPRESENTATION_STRING_HEX});
+		    	applicationProperties.setValue("LastMAC", s.toUpper());
+			}
+			catch (e)
+			{
+		    	//System.println("err");
+			}
+		}
 	}
 
     function initialize()
@@ -205,6 +232,18 @@ class emtbView extends baseView
 	{
 		getSettings();
 	
+		if (bleHandler!=null)
+		{
+			// if lastLock or lastMAC get changed dynamically while the field is running then should check if current bike connection is ok
+			if (lastLock && lastMACArray!=null && bleHandler.connectedMACArray!=null && !bleHandler.sameMACArray(lastMACArray, bleHandler.connectedMACArray))
+			{
+				bleHandler.bleDisconnect();
+			}
+	
+			// And lets clear the scanned list, as if a device was scanned and excluded previously, maybe now it shouldn't be
+			bleHandler.deleteScannedList();
+		}
+
     	WatchUi.requestUpdate();   // update the view to reflect changes
 	}
 
@@ -244,7 +283,7 @@ class emtbView extends baseView
 		}
 		    
     	var showMode = (showList[0]>=2 || showList[1]>=2 || showList[2]>=2);
-    	bleHandler.requestNotifyMode(showMode && bleHandler.isConnected());		// set whether we want mode or not (continuously)
+    	bleHandler.requestNotifyMode(showMode);		// set whether we want mode or not (continuously)
     
 		bleHandler.compute();
 		
@@ -303,7 +342,7 @@ class emtbView extends baseView
 				}
 			}
 		}
-				       
+				
 		return baseView.compute(info);	// if a SimpleDataField then this will return the string/value to display
     }
 }
@@ -322,16 +361,27 @@ class emtbDelegate extends Ble.BleDelegate
 	
 	var state = State_Init;
 
-	var wantStartScanning = false;
+	var connectedMACArray = null; 
 
-	function startConnect()
+	var currentScanning = false;
+	var wantScanning = false;
+
+	function startConnecting()
 	{
 		mainView.batteryValue = -1;
 		mainView.modeValue = -1;
 		mainView.gearValue = -1;
 
 		state = State_Connecting;
-		wantStartScanning = true;
+		
+		connectedMACArray = null;
+
+		wantScanning = true;
+		readMACScanResult = null;
+		deleteScannedList();
+
+		writingNotifyMode = false;
+		currentNotifyMode = false;
 	}
 
 	function isConnecting()
@@ -344,10 +394,65 @@ class emtbDelegate extends Ble.BleDelegate
 		return (state==State_Idle);
 	}
 	
-	function completeConnect()
+	function startReadingMAC()
 	{
-		state = State_Idle;
-		Ble.setScanState(Ble.SCAN_STATE_OFF);	// Ble.SCAN_STATE_OFF, Ble.SCAN_STATE_SCANNING
+		if (readMACScanResult!=null)
+		{
+			// we keep a count of how many times we've attempted to read the MAC, because it really can fail sometimes
+			// just set an upper limit so don't get stuck here forever
+			if (readMACCounter<readMACCounterMaxAllowed)
+			{
+				if (bleReadMAC())
+				{
+					// started reading the MAC address
+					readMACCounter++;
+				}
+				else
+				{
+					readMACScanResult = null;
+				}
+			}
+			else
+			{
+				readMACScanResult = null;
+			}
+		}
+	}
+	
+	function completeReadMAC(readMACArray)
+	{
+		if (readMACScanResult!=null)
+		{
+			var foundDevice = (!mainView.lastLock || mainView.lastMACArray==null || sameMACArray(mainView.lastMACArray, readMACArray));
+			if (foundDevice)
+			{
+				// store the MAC address into the user settings for next time
+				mainView.saveLastMACAddress(readMACArray);
+								
+				// can stop scanning
+				wantScanning = false;
+				Ble.setScanState(Ble.SCAN_STATE_OFF);	// Ble.SCAN_STATE_OFF, Ble.SCAN_STATE_SCANNING				
+
+				state = State_Idle;
+				connectedMACArray = readMACArray;	// remember the MAC address of whatever we've connected to
+			}
+			else
+			{
+				failedReadMACScan();
+			}
+		}
+	}
+	
+	function failedReadMACScan()
+	{
+		if (readMACScanResult!=null)
+		{
+			addToScannedList(readMACScanResult);	// remember this device has been scanned and not to try connecting to it again
+			readMACScanResult = null;		// clear this so a new device can be tested
+
+	    	// unpair & disconnect from this device so we can try connecting to another instead
+			bleDisconnect();
+		}
 	}
 	
 	var wantReadBattery = false;
@@ -358,10 +463,32 @@ class emtbDelegate extends Ble.BleDelegate
 		wantReadBattery = true;
 	}
 	
-	var currentNotifyMode = false;
+	var readMACScanResult = false;
+	var readMACCounter = 0;		// number of times we have started reading MAC for the current readMACScanResult
+	const readMACCounterMaxAllowed = 5;		// number of times we have started reading MAC for the current readMACScanResult
+
+	function sameMACArray(a, b)	// pass in 2 byte arrays
+	{
+		if (a==null || b==null || a.size()!=b.size())
+		{
+			return false;
+		}
+		
+		for (var i=0; i<a.size(); i++)
+		{
+			if (a[i] != b[i])
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	var wantNotifyMode = false;
 	var waitingWrite = false;
 	var writingNotifyMode = false;
+	var currentNotifyMode = false;
 	
    	function requestNotifyMode(wantMode)
    	{
@@ -376,21 +503,21 @@ class emtbDelegate extends Ble.BleDelegate
 
    		bleInitProfiles();
    		
-   		startConnect();
+   		startConnecting();
     }
     
     // called from compute of mainView
     function compute()
     {
+		if (wantScanning!=currentScanning)
+		{
+			Ble.setScanState(wantScanning ? Ble.SCAN_STATE_SCANNING : Ble.SCAN_STATE_OFF);	// Ble.SCAN_STATE_OFF, Ble.SCAN_STATE_SCANNING
+		}
+
     	switch (state)
     	{
 			case State_Connecting:		// scanning & pairing until we connect to the bike
 			{
-				if (wantStartScanning)
-				{
-        			Ble.setScanState(Ble.SCAN_STATE_SCANNING);	// Ble.SCAN_STATE_OFF, Ble.SCAN_STATE_SCANNING
-				}
-
 				// waiting for onScanResults() to be called
 				// and for it to decide to pair to something
 				//
@@ -401,7 +528,15 @@ class emtbDelegate extends Ble.BleDelegate
 			
 			case State_Idle:	// connected, so now reading data as needed
 			{
-				if (!waitingRead && !waitingWrite)
+				// if there is no longer a paired device or it is not connected
+				// then we have disconnected ...		
+				var d = Ble.getPairedDevices().next();	// get first device (since we only connect to one at a time)
+				if (d==null || !d.isConnected())
+				{
+					bleDisconnect();
+					state = State_Disconnected;
+				}
+				else if (!waitingRead && !waitingWrite)
 				{
 					if (wantReadBattery)
 					{
@@ -429,7 +564,7 @@ class emtbDelegate extends Ble.BleDelegate
 			
 			case State_Disconnected:
 			{				
-    			startConnect();		// start scanning to connect again
+    			startConnecting();		// start scanning to connect again
 				break;
 			}
     	}
@@ -449,7 +584,21 @@ class emtbDelegate extends Ble.BleDelegate
 	
 	var MACServiceUuid = Ble.stringToUuid("000018fe-1212-efde-1523-785feabcd123");
 	var MACCharacteristicUuid = Ble.stringToUuid("00002ae3-1212-efde-1523-785feabcd123");
-	
+
+	// scanResult.getRawData() returns this:
+	// [3, 25, 128, 4, 2, 1, 5, 17, 6, 0, 69, 76, 66, 95, 79, 78, 65, 77, 73, 72, 83, 255, 24, 0, 0, 5, 255, 74, 4, 1, 0]
+	// Raw advertising data format: https://www.silabs.com/community/wireless/bluetooth/knowledge-base.entry.html/2017/02/10/bluetooth_advertisin-hGsf
+	// And the data types: https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
+	//
+	// So decoding gives:
+	// 3, 25, 128, 4, (25=appearance) 0x8004
+	// 2, 1, 5, (1=flags)
+	// 17, 6, 0, 69, 76, 66, 95, 79, 78, 65, 77, 73, 72, 83, 255, 24, 0, 0, (6=Incomplete List of 128-bit Service Class UUIDs)
+	//     (This in hex is 00 45 4c 42 5f 4f 4e 41 4d 49 48 53 ff 18 00 00, which matches 000018ff-5348-494d-414e-4f5f424c4500)
+	// 5, 255, 74, 4, 1, 0 (255=Manufacturer Specific Data) (74 04 == Shimano BLE company id, which in decimal is 1098)
+	//
+	// Note that scanResult.getManufacturerSpecificData(1098) returns [1, 0]
+
     // set up the ble profiles we will use (CIQ allows up to 3 luckily ...) 
     function bleInitProfiles()
     {
@@ -501,10 +650,19 @@ class emtbDelegate extends Ble.BleDelegate
     		Ble.registerProfile(profile2);
     		Ble.registerProfile(profile3);
 		}
-		catch (e instanceof Lang.Exception)
+		catch (e)
 		{
 		    //System.println("catch = " + e.getErrorMessage());
 		    //mainView.displayString = "err";
+		}
+    }
+    
+    function bleDisconnect()
+    {
+		var d = Ble.getPairedDevices().next();	// get first device (since we only connect to one at a time)
+		if (d!=null)
+		{
+			Ble.unpairDevice(d);
 		}
     }
     
@@ -512,7 +670,7 @@ class emtbDelegate extends Ble.BleDelegate
     {
        	var startedWrite = false;
     
-    	// get first device (since we only connect to one) and check it is connected
+    	// get first device (since we only connect to one at a time) and check it is connected
 		var d = Ble.getPairedDevices().next();
 		if (d!=null && d.isConnected())
 		{
@@ -530,7 +688,7 @@ class emtbDelegate extends Ble.BleDelegate
 					}
 				}
 			}
-			catch (e instanceof Lang.Exception)
+			catch (e)
 			{
 			    //System.println("catch = " + e.getErrorMessage());			    
 			}
@@ -548,7 +706,7 @@ class emtbDelegate extends Ble.BleDelegate
     	// ... or maybe it doesn't, as always get a crash trying to call requestRead() after power off bike
     	// After adding code to wait for the read to finish before starting a new one, then the crash doesn't happen. 
     
-    	// get first device (since we only connect to one) and check it is connected
+    	// get first device (since we only connect to one at a time) and check it is connected
 		var d = Ble.getPairedDevices().next();
 		if (d!=null && d.isConnected())
 		{
@@ -565,7 +723,37 @@ class emtbDelegate extends Ble.BleDelegate
 					}
 				}
 			}
-			catch (e instanceof Lang.Exception)
+			catch (e)
+			{
+			    //System.println("catch = " + e.getErrorMessage());			    
+			}
+		}
+
+		return startedRead;
+    }
+    
+    function bleReadMAC()
+    {
+    	var startedRead = false;
+    
+    	// get first device (since we only connect to one at a time) and check it is connected
+		var d = Ble.getPairedDevices().next();
+		if (d!=null && d.isConnected())
+		{
+			try
+			{
+				var ds = d.getService(MACServiceUuid);
+				if (ds!=null)
+				{
+					var dsc = ds.getCharacteristic(MACCharacteristicUuid);
+					if (dsc!=null)
+					{
+						dsc.requestRead();
+						startedRead = true;
+					}
+				}
+			}
+			catch (e)
 			{
 			    //System.println("catch = " + e.getErrorMessage());			    
 			}
@@ -583,14 +771,12 @@ class emtbDelegate extends Ble.BleDelegate
     function onScanStateChange(scanState, status)
     {
     	//System.println("onScanStateChange scanState=" + scanState + " status=" + status);
-    	if (state==Ble.SCAN_STATE_SCANNING)
-    	{
-    		wantStartScanning = false;
-    	}
+    	currentScanning = (scanState==Ble.SCAN_STATE_SCANNING);
+    
+		readMACScanResult = null;		// make sure this is cleared whether starting or ending scanning
+		deleteScannedList();
     }
-    
-//    var rList = [];
-    
+        
     private function iterContains(iter, obj)
     {
         for (var uuid=iter.next(); uuid!=null; uuid=iter.next())
@@ -604,10 +790,37 @@ class emtbDelegate extends Ble.BleDelegate
         return false;
     }
 
+    var scannedList = [];
+    const maxScannedListSize = 10;		// choose a max size just in case
+
+	function addToScannedList(r)
+	{
+		// if reached max size of scan list remove the first (oldest) one
+		if (scannedList.size()>=maxScannedListSize)
+		{
+			scannedList = scannedList.slice(1, maxScannedListSize);  
+		}
+	
+		// add new scan result to end of our scan list
+		scannedList.add(r);
+	}
+	
+	function deleteScannedList()
+	{
+    	scannedList = new[0];	// new zero length array
+	}
+	
     function onScanResults(scanResults)
     {
     	//System.println("onScanResults");
-    
+
+		if (!wantScanning)
+		{
+			return;
+		}
+
+		var newList = [];	// new devices to connect to
+
     	for (;;)
     	{
     		var r = scanResults.next();
@@ -616,104 +829,64 @@ class emtbDelegate extends Ble.BleDelegate
     			break;
     		}
 
-			// check the advertised uuids to see if right sort of device
-      		if (iterContains(r.getServiceUuids(), advertised1ServiceUuid))
+      		if (iterContains(r.getServiceUuids(), advertised1ServiceUuid))	// check the advertised uuids to see if right sort of device
       		{
-      			var d = Ble.pairDevice(r);
-      			if (d!=null)
-      			{
-      				// it seems that sometimes after pairing onConnectedStateChanged() is not always called
-      				// - checking isConnected() here immediately seems to avoid that case happening.
-      				if (d.isConnected())
-      				{
-      					completeConnect();
-      				}
-      				
-     				//mainView.displayString = "paired " + d.getName();
-      			}
-      			else
-      			{
-     				//mainView.displayString = "not";
-    				state = State_Connecting;
-      			}
-      			
-      			break;
-      		}
-    	}
-    	
-//    	for (;;)
-//    	{
-//    		var r = scanResults.next();
-//    		if (r==null)
-//    		{
-//    			break;
-//    		}
-//    		
-//    		var rNew = true;
-//    		for (var i=0; i<rList.size(); i++)
-//    		{
-//    			if (r.isSameDevice(rList[i]))
-//    			{
-//    				rList[i] = r;
-//    				rNew = false;
-//    				break;
-//    			}
-//    		}
-//    		
-//    		if (rNew)
-//    		{
-//    			rList.add(r);
-//    		}
-//       	}
-//
-//		var bestI = -1;
-//		var bestRssi = -999;
-//		
-//    	for (var i=0; i<rList.size(); i++)
-//    	{
-//    		var rssi = rList[i].getRssi();
-//    		if (bestI<0 || rssi>bestRssi)
-//    		{
-//   				bestI = i;
-//   				bestRssi = rssi;
-//   			}
-//   		}
-//
-//		if (bestI>=0)
-//		{
-//			mainView.displayString = "" + rList.size() + " " + rList[bestI].getRssi();
-//
-//    		var s = rList[bestI].getDeviceName();
-//    		if (s!=null)
-//    		{
-//    			mainView.displayString += s;
-//    		}
-//    		
-////    		var iter = rList[bestI].getServiceUuids();
-////    		if (iter!=null)
-////    		{
-////    			var u = iter.next();
-////    			if (u!=null)
-////    			{
-////    				mainView.displayString += u.toString();
-////    			}
-////    		}    		
-//    		
-////    		//var data = rList[bestI].getManufacturerSpecificData(1098);		// [1, 0]
-////    		var data = rList[bestI].getRawData();			// [3, 25, 128, 4, 2, 1, 5, 17, 6, 0, 69, 76, 66, 95, 79, 78, 65, 77, 73, 72, 83, 255, 24, 0, 0, 5, 255, 74, 4, 1, 0]
-////    														// 3, 25, 128, 4, (25=appearance) 0x8004
-////    														// 2, 1, 5, (1=flags)
-////    														// 17, 6, 0, 69, 76, 66, 95, 79, 78, 65, 77, 73, 72, 83, 255, 24, 0, 0, (6=Incomplete List of 128-bit Service Class UUIDs)
-////    														// 5, 255, 74, 4, 1, 0 (255=Manufacturer Specific Data) (74 4 == Shimano)
-////    		if (data!=null)
-////    		{
-////   				mainView.displayString += data.toString();
-////    		}
-//		}
-//		else
-//		{
-//			mainView.displayString = "none";
-//		}
+      			// see if it is a device we haven't checked before
+				var newResult = true;
+				
+				for (var i=0; i<scannedList.size(); i++)
+				{
+					if (r.isSameDevice(scannedList[i]))
+					{
+						scannedList[i] = r;		// update the scan info
+						newResult = false;
+						break;
+					}
+				}
+				
+				if (newResult)
+				{
+					newList.add(r);
+				}
+			}
+		}
+		
+		if (readMACScanResult==null && newList.size()>0)	// not already checking the MAC address of a device
+		{
+			// find the new device which has the strongest signal
+			var bestI = 0;
+			var bestRssi = newList[0].getRssi();
+			
+	    	for (var i=1; i<newList.size(); i++)
+	    	{
+	    		var rssi = newList[i].getRssi();
+	    		if (rssi>bestRssi)
+	    		{
+	   				bestI = i;
+	   				bestRssi = rssi;
+	   			}
+	   		}
+
+			// lets try pairing to this device so we can check its MAC address
+			readMACScanResult = newList[bestI];
+			readMACCounter = 0;
+  			var d = Ble.pairDevice(readMACScanResult);
+  			if (d!=null)
+  			{
+  				// it seems that sometimes after pairing onConnectedStateChanged() is not always called
+  				// - checking isConnected() here immediately seems to avoid that case happening.
+  				if (d.isConnected())
+  				{
+  					startReadingMAC();
+  				}
+  				
+ 				//mainView.displayString = "paired " + d.getName();
+  			}
+  			else
+  			{
+				readMACScanResult = null;
+  			}
+		}
     }
 
 	// After pairing a device this will be called after the connection is made.
@@ -722,11 +895,7 @@ class emtbDelegate extends Ble.BleDelegate
 	{
 		if (connectionState==Ble.CONNECTION_STATE_CONNECTED)
 		{
-			completeConnect();
-		}
-		else if (connectionState==Ble.CONNECTION_STATE_DISCONNECTED)
-		{
-			state = State_Disconnected;
+			startReadingMAC();
 		}
 	}
 	
@@ -738,6 +907,24 @@ class emtbDelegate extends Ble.BleDelegate
 			if (value!=null && value.size()>0)		// (had this return a zero length array once ...)
 			{
 				mainView.batteryValue = value[0].toNumber();	// value is a byte array
+			}
+		}
+		else if (characteristic.getUuid().equals(MACCharacteristicUuid))
+		{
+			if (status==Ble.STATUS_SUCCESS)
+			{
+				if (value!=null && value.size()>0)
+				{
+					completeReadMAC(value.reverse());	// reverse array order to properly match real MAC address as reported by phone
+				}
+				else
+				{
+					failedReadMACScan();
+				}
+			}
+			else
+			{
+				startReadingMAC();	// try reading the MAC address again
 			}
 		}
 		
