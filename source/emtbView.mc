@@ -473,7 +473,7 @@ class emtbDelegate extends Ble.BleDelegate
 		}
 	}
 	
-	var readMACScanResult = false;			// this is the scan result that we are currently reading the MAC address of (to determine if it is the correct bike)
+	var readMACScanResult = null;			// this is the scan result that we are currently reading the MAC address of (to determine if it is the correct bike)
 	var readMACCounter = 0;					// number of times we have started reading MAC for the current readMACScanResult
 	const readMACCounterMaxAllowed = 5;		// number of times we have started reading MAC for the current readMACScanResult
 
