@@ -203,6 +203,7 @@ class emtbView extends baseView
 		catch (e)
 		{
 	    	//System.println("err");
+	    	lastMACArray = null;
 		}
 	}
 
@@ -279,7 +280,7 @@ class emtbView extends baseView
 		//showList[1] = 2;	// mode
 		//showList[2] = 5;	// gear
     
-    	var showBattery = (showList[0]==1 || showList[1]==1 || showList[2]==2);
+    	var showBattery = (showList[0]==1 || showList[1]==1 || showList[2]==1);
     	if (showBattery)
     	{
 	    	// only read battery value every 15 seconds once we have a value
