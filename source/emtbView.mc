@@ -301,15 +301,18 @@ class emtbView extends baseView
    		displayString = "";
 
 		// could show status of scanning & pairing if we wanted
-		if (!bleHandler.isRegistered())
+		if (bleHandler.isConnecting())
 		{
-			displayString = "BLE Start";
-		}
-		else if (bleHandler.isConnecting())
-		{
-			connectCounter++;
-			
-			displayString = "Scan " + connectCounter;
+			if (!bleHandler.isRegistered())
+			{
+				displayString = "BLE Start"; // + bleHandler.profileRegisterSuccessCount + ":" + bleHandler.profileRegisterFailCount;
+			}
+			else
+			{
+				connectCounter++;
+				
+				displayString = "Scan " + connectCounter;
+			}
 		}
 		else
 		{
@@ -385,27 +388,20 @@ class emtbDelegate extends Ble.BleDelegate
 	// start the process of scanning for a bike to connect to
 	function startConnecting()
 	{
-		if (isRegistered())
-		{
-			mainView.batteryValue = -1;
-			mainView.modeValue = -1;
-			mainView.gearValue = -1;
-	
-			state = State_Connecting;
-			
-			connectedMACArray = null;
-	
-			wantScanning = true;
-			readMACScanResult = null;
-			deleteScannedList();
-	
-			writingNotifyMode = false;
-			currentNotifyMode = false;
-		}
-		else
-		{
-			state = State_Disconnected;
-		}
+		mainView.batteryValue = -1;
+		mainView.modeValue = -1;
+		mainView.gearValue = -1;
+
+		state = State_Connecting;
+		
+		connectedMACArray = null;
+
+		wantScanning = true;
+		readMACScanResult = null;
+		deleteScannedList();
+
+		writingNotifyMode = false;
+		currentNotifyMode = false;
 	}
 
 	// have the profiles been registered successfully?
