@@ -301,7 +301,11 @@ class emtbView extends baseView
    		displayString = "";
 
 		// could show status of scanning & pairing if we wanted
-		if (bleHandler.isConnecting())
+		if (!bleHandler.isRegistered())
+		{
+			displayString = "BLE Start";
+		}
+		else if (bleHandler.isConnecting())
 		{
 			connectCounter++;
 			
@@ -381,22 +385,35 @@ class emtbDelegate extends Ble.BleDelegate
 	// start the process of scanning for a bike to connect to
 	function startConnecting()
 	{
-		mainView.batteryValue = -1;
-		mainView.modeValue = -1;
-		mainView.gearValue = -1;
-
-		state = State_Connecting;
-		
-		connectedMACArray = null;
-
-		wantScanning = true;
-		readMACScanResult = null;
-		deleteScannedList();
-
-		writingNotifyMode = false;
-		currentNotifyMode = false;
+		if (isRegistered())
+		{
+			mainView.batteryValue = -1;
+			mainView.modeValue = -1;
+			mainView.gearValue = -1;
+	
+			state = State_Connecting;
+			
+			connectedMACArray = null;
+	
+			wantScanning = true;
+			readMACScanResult = null;
+			deleteScannedList();
+	
+			writingNotifyMode = false;
+			currentNotifyMode = false;
+		}
+		else
+		{
+			state = State_Disconnected;
+		}
 	}
 
+	// have the profiles been registered successfully?
+	function isRegistered()
+	{
+		return (profileRegisterSuccessCount>=3);
+	}
+	
 	// in the process of scanning & choosing a bike?
 	function isConnecting()
 	{
@@ -608,6 +625,9 @@ class emtbDelegate extends Ble.BleDelegate
 	var MACServiceUuid = Ble.stringToUuid("000018fe-1212-efde-1523-785feabcd123");
 	var MACCharacteristicUuid = Ble.stringToUuid("00002ae3-1212-efde-1523-785feabcd123");
 
+	var profileRegisterSuccessCount = 0;
+	var profileRegisterFailCount = 0;
+
 	// scanResult.getRawData() returns this:
 	// [3, 25, 128, 4, 2, 1, 5, 17, 6, 0, 69, 76, 66, 95, 79, 78, 65, 77, 73, 72, 83, 255, 24, 0, 0, 5, 255, 74, 4, 1, 0]
 	// Raw advertising data format: https://www.silabs.com/community/wireless/bluetooth/knowledge-base.entry.html/2017/02/10/bluetooth_advertisin-hGsf
@@ -790,6 +810,15 @@ class emtbDelegate extends Ble.BleDelegate
 	{
     	//System.println("onProfileRegister status=" + status);
        	//mainView.displayString = "reg" + status;
+       	
+       	if (status==Ble.STATUS_SUCCESS)
+       	{
+       		profileRegisterSuccessCount += 1;
+       	}
+       	else
+       	{
+			profileRegisterFailCount += 1;
+       	}
 	}
 
     function onScanStateChange(scanState, status)
