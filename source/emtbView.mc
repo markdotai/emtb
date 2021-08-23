@@ -110,9 +110,12 @@ class emtbView extends baseView
 	var lastLock = false;		// user setting for lock to MAC address (or not)
 	var lastMACArray = null;	// byte array of MAC address of bike
 
-	var batteryValue = -1;		// batter % to display
-	var modeValue = -1;			// assist mode to display
-	var gearValue = -1;			// gear number to display
+	var batteryValue = -1;			// battery % to display
+	var modeValue = -1;				// assist mode to display
+	var gearValue = -1;				// gear number to display
+	var cadenceValue = -1;			// cadence to display
+	var currentSpeedValue = -1; 	// current speed to display
+	var assistanceLevelValue = -1;	// assistance level to display
 
 	const secondsWaitBattery = 15;		// only read the battery value every 15 seconds
 	var secondsSinceReadBattery = secondsWaitBattery;
@@ -356,6 +359,24 @@ class emtbView extends baseView
 	    				displayString += ((displayString.length()>0)?" ":"") + ((gearValue>=0) ? gearValue : "-");
 						break;
 					}
+
+					case 6:		// cadence
+					{
+	    				displayString += ((displayString.length()>0)?" ":"") + ((cadenceValue>=0) ? cadenceValue : "-");
+						break;
+					}
+
+					case 7:		// current speed
+					{
+	    				displayString += ((displayString.length()>0)?" ":"") + ((currentSpeedValue>=0) ? currentSpeedValue.format("%.1f") : "-");
+						break;
+					}
+
+					case 8:		// assistance level
+					{
+	    				displayString += ((displayString.length()>0)?" ":"") + ((assistanceLevelValue>=0) ? assistanceLevelValue : "-");
+						break;
+					}
 				}
 			}
 		}
@@ -391,6 +412,9 @@ class emtbDelegate extends Ble.BleDelegate
 		mainView.batteryValue = -1;
 		mainView.modeValue = -1;
 		mainView.gearValue = -1;
+		mainView.cadenceValue = -1;
+		mainView.currentSpeedValue = -1;
+		mainView.assistanceLevelValue = -1;
 
 		state = State_Connecting;
 		
@@ -1008,6 +1032,9 @@ class emtbDelegate extends Ble.BleDelegate
 				if (value.size()==10)	// we want the one which is 10 bytes long (out of the 3 that Shimano seem to spam ...)
 				{
 					mainView.modeValue = value[1].toNumber();	// and it is the 2nd byte of the array
+					mainView.cadenceValue = value[5].toNumber();
+					mainView.currentSpeedValue = ((value[3] << 8) | value[2]).toFloat()/10;
+					mainView.assistanceLevelValue = value[4].toNumber();
 				}
 				else if (value.size()==17)
 				{

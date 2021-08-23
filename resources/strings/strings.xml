@@ -14,4 +14,7 @@
     <string id="ShowModeLetter">Mode Letter</string>
     <string id="ShowModeNumber">Mode Number</string>
     <string id="ShowGear">Gear</string>
+    <string id="ShowCadence">Cadence</string>
+    <string id="ShowCurrentSpeed">Current Speed</string>
+    <string id="ShowAssistanceLevel">Assistance Level</string>
 </strings>

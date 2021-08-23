@@ -20,6 +20,9 @@
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
             <listEntry value="5">@Strings.ShowGear</listEntry>
+            <listEntry value="6">@Strings.ShowCadence</listEntry>
+            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
         </settingConfig>
     </setting>
 
@@ -31,6 +34,9 @@
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
             <listEntry value="5">@Strings.ShowGear</listEntry>
+            <listEntry value="6">@Strings.ShowCadence</listEntry>
+            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
         </settingConfig>
     </setting>
 
@@ -42,6 +48,9 @@
             <listEntry value="3">@Strings.ShowModeLetter</listEntry>
             <listEntry value="4">@Strings.ShowModeNumber</listEntry>
             <listEntry value="5">@Strings.ShowGear</listEntry>
+            <listEntry value="6">@Strings.ShowCadence</listEntry>
+            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
         </settingConfig>
     </setting>
 
