@@ -8,49 +8,63 @@
         <settingConfig type="boolean" />
     </setting>
 
-    <setting propertyKey="@Properties.Label" title="@Strings.LabelTitle">
-        <settingConfig type="alphaNumeric" maxLength="40" />
-    </setting>
-
     <setting propertyKey="@Properties.Item1" title="@Strings.Item1Title">
         <settingConfig type="list">
             <listEntry value="0">@Strings.ShowOff</listEntry>
-            <listEntry value="1">@Strings.ShowBattery</listEntry>
-            <listEntry value="2">@Strings.ShowModeName</listEntry>
-            <listEntry value="3">@Strings.ShowModeLetter</listEntry>
-            <listEntry value="4">@Strings.ShowModeNumber</listEntry>
-            <listEntry value="5">@Strings.ShowGear</listEntry>
-            <listEntry value="6">@Strings.ShowCadence</listEntry>
-            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="1">@Strings.ShowBatteryAvailable</listEntry>
+            <listEntry value="2">@Strings.ShowBatteryConsumed</listEntry>
+            <listEntry value="3">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="4">@Strings.ShowModeName</listEntry>
+            <listEntry value="5">@Strings.ShowModeLetter</listEntry>
+            <listEntry value="6">@Strings.ShowGear</listEntry>
+            <listEntry value="7">@Strings.ShowCadence</listEntry>
             <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
+            <listEntry value="9">@Strings.ShowCurrentSpeed</listEntry>
         </settingConfig>
     </setting>
 
     <setting propertyKey="@Properties.Item2" title="@Strings.Item2Title">
         <settingConfig type="list">
             <listEntry value="0">@Strings.ShowOff</listEntry>
-            <listEntry value="1">@Strings.ShowBattery</listEntry>
-            <listEntry value="2">@Strings.ShowModeName</listEntry>
-            <listEntry value="3">@Strings.ShowModeLetter</listEntry>
-            <listEntry value="4">@Strings.ShowModeNumber</listEntry>
-            <listEntry value="5">@Strings.ShowGear</listEntry>
-            <listEntry value="6">@Strings.ShowCadence</listEntry>
-            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="1">@Strings.ShowBatteryAvailable</listEntry>
+            <listEntry value="2">@Strings.ShowBatteryConsumed</listEntry>
+            <listEntry value="3">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="4">@Strings.ShowModeName</listEntry>
+            <listEntry value="5">@Strings.ShowModeLetter</listEntry>
+            <listEntry value="6">@Strings.ShowGear</listEntry>
+            <listEntry value="7">@Strings.ShowCadence</listEntry>
             <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
+            <listEntry value="9">@Strings.ShowCurrentSpeed</listEntry>
         </settingConfig>
     </setting>
 
     <setting propertyKey="@Properties.Item3" title="@Strings.Item3Title">
         <settingConfig type="list">
             <listEntry value="0">@Strings.ShowOff</listEntry>
-            <listEntry value="1">@Strings.ShowBattery</listEntry>
-            <listEntry value="2">@Strings.ShowModeName</listEntry>
-            <listEntry value="3">@Strings.ShowModeLetter</listEntry>
-            <listEntry value="4">@Strings.ShowModeNumber</listEntry>
-            <listEntry value="5">@Strings.ShowGear</listEntry>
-            <listEntry value="6">@Strings.ShowCadence</listEntry>
-            <listEntry value="7">@Strings.ShowCurrentSpeed</listEntry>
+            <listEntry value="1">@Strings.ShowBatteryAvailable</listEntry>
+            <listEntry value="2">@Strings.ShowBatteryConsumed</listEntry>
+            <listEntry value="3">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="4">@Strings.ShowModeName</listEntry>
+            <listEntry value="5">@Strings.ShowModeLetter</listEntry>
+            <listEntry value="6">@Strings.ShowGear</listEntry>
+            <listEntry value="7">@Strings.ShowCadence</listEntry>
             <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
+            <listEntry value="9">@Strings.ShowCurrentSpeed</listEntry>
+        </settingConfig>
+    </setting>
+
+    <setting propertyKey="@Properties.Item4" title="@Strings.Item4Title">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ShowOff</listEntry>
+            <listEntry value="1">@Strings.ShowBatteryAvailable</listEntry>
+            <listEntry value="2">@Strings.ShowBatteryConsumed</listEntry>
+            <listEntry value="3">@Strings.ShowModeNumber</listEntry>
+            <listEntry value="4">@Strings.ShowModeName</listEntry>
+            <listEntry value="5">@Strings.ShowModeLetter</listEntry>
+            <listEntry value="6">@Strings.ShowGear</listEntry>
+            <listEntry value="7">@Strings.ShowCadence</listEntry>
+            <listEntry value="8">@Strings.ShowAssistanceLevel</listEntry>
+            <listEntry value="9">@Strings.ShowCurrentSpeed</listEntry>
         </settingConfig>
     </setting>
 

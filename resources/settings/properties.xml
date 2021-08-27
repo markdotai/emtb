@@ -2,9 +2,9 @@
 
     <property id="LastMAC" type="string"></property>			<!-- last MAC address -->
     <property id="LastLock" type="boolean">false</property>		<!-- lock to last -->
-    <property id="Label" type="string">STEPS EMTB</property>	<!-- label -->
-    <property id="Item1" type="number">1</property>				<!-- default show battery -->
+    <property id="Item1" type="number">1</property>				<!-- default show battery available -->
     <property id="Item2" type="number">0</property>				<!-- default off -->
     <property id="Item3" type="number">0</property>				<!-- default off -->
+    <property id="Item4" type="number">0</property>             <!-- default off -->
 
 </properties>

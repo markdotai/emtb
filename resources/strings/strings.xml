@@ -3,18 +3,31 @@
 
     <string id="LastMACTitle">Last EMTB MAC Address</string>
     <string id="LastLockTitle">Lock to MAC Address</string>
-    <string id="LabelTitle">Label</string>
     <string id="Item1Title">Item 1</string>
     <string id="Item2Title">Item 2</string>
     <string id="Item3Title">Item 3</string>
+    <string id="Item4Title">Item 4</string>
 
     <string id="ShowOff">Off</string>
-    <string id="ShowBattery">Battery</string>
+    <string id="ShowBatteryAvailable">Battery (available)</string>
+    <string id="ShowBatteryConsumed">Battery (consumed)</string>
+    <string id="ShowModeNumber">Mode Number</string>
     <string id="ShowModeName">Mode Name</string>
     <string id="ShowModeLetter">Mode Letter</string>
-    <string id="ShowModeNumber">Mode Number</string>
     <string id="ShowGear">Gear</string>
     <string id="ShowCadence">Cadence</string>
-    <string id="ShowCurrentSpeed">Current Speed</string>
     <string id="ShowAssistanceLevel">Assistance Level</string>
+    <string id="ShowCurrentSpeed">Current Speed</string>
+
+    <!-- Max label length = 5 chars -->
+    <string id="LabelOff">OFF</string>
+    <string id="LabelBatteryAvailable">BAT-A</string>
+    <string id="LabelBatteryConsumed">BAT-C</string>
+    <string id="LabelModeNumber">MOD-N</string>
+    <string id="LabelModeName">MOD-N</string>
+    <string id="LabelModeLetter">MOD-L</string>
+    <string id="LabelGear">GEAR</string>
+    <string id="LabelCadence">CADEN</string>
+    <string id="LabelAssistanceLevel">ASS-L</string>
+    <string id="LabelSpeed">SPEED</string>
 </strings>
