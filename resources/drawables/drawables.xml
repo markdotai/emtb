@@ -1,13 +1,3 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png" />
-    <drawable-list id="Line1">
-        <shape type="rectangle" color="Graphics.COLOR_WHITE" width="fill" height="1%" x="0" y="37%" />
-    </drawable-list>
-    <drawable-list id="Line2">
-        <shape type="rectangle" color="Graphics.COLOR_WHITE" width="fill" height="1%" x="0" y="67%" />
-    </drawable-list>
-    <drawable-list id="Line3">
-        <shape type="rectangle" color="Graphics.COLOR_WHITE" width="1%" height="30%" x="center" y="38%" />
-    </drawable-list>
-    
 </drawables>
