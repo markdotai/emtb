@@ -29,9 +29,11 @@ class emtbDelegateMookup
 	function startConnecting()
 	{
 		mainView.values[1] = -1;
-    	mainView.values[3] = -1;
-    	mainView.values[6] = -1;
-
+		mainView.values[3] = -1;
+		mainView.values[6] = -1;
+		mainView.values[7] = -1;
+		mainView.values[8] = -1;
+		mainView.values[9] = -1;
 		state = State_Connecting;
 		
 		connectedMACArray = null;

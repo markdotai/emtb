@@ -10,10 +10,10 @@ class emtbView extends WatchUi.DataField {
     // set true to enable debugging and mookup BLE
     private const debugging = false;
 
-    private var thisView;               // reference to self, lovely
-    private var bleHandler;             // the BLE delegate
+    var thisView;               // reference to self, lovely
+    var bleHandler;             // the BLE delegate
     
-    private var showList = [];          // 3 user settings for which values to show
+    private var showList = [];          // 4 user settings for which values to show
     var lastLock = false;               // user setting for lock to MAC address (or not)
     var lastMACArray = null;            // byte array of MAC address of bike
     
@@ -39,7 +39,9 @@ class emtbView extends WatchUi.DataField {
         9 => WatchUi.loadResource(Rez.Strings.LabelSpeed)
     };
 
+    private var layout = 0;
     private const padding = 20;
+    private var computeXY;
 
     private const secondsWaitBattery = 15;  // only read the battery value every 15 seconds
     private var secondsSinceReadBattery = secondsWaitBattery;
@@ -107,19 +109,53 @@ class emtbView extends WatchUi.DataField {
         return v;
     }
 
-    // read the user settings and store locally
-    function getUserSettings()
+    function initLayout()
     {
-        // Add the values to showList
-        showList = [];
-        for (var i=1; i<=4; i++)
+        if (layout == 0)
         {
-            if(propertiesGetNumber("Item" + i.toString()) != 0)
+            System.println("Horizontal layout selected");
+            computeXY = self.method(:horizontalLayout);
+        }
+        else if (layout == 1)
+        {
+            System.println("Vertical layout selected");
+            computeXY = self.method(:verticalLayout);
+        } else // Diamond Layout
+        {
+            System.println("Diamond layout selected");
+            computeXY = self.method(:diamondLayout);
+        }
+    }
+
+    function initShowList(items)
+    {
+        showList = [];
+        for (var i=0; i<items.size(); i++)
+        {
+            if(items[i] != 0)
             {
-                showList.add(propertiesGetNumber("Item" + i.toString()));
+                showList.add(items[i]);
             }
         }
         System.println("Showing list " + showList.toString());
+    }
+
+    // read the user settings and store locally
+    function getUserSettings()
+    {
+        // Get the layout
+        layout = propertiesGetNumber("Layout");
+
+        // Init the showList
+        initShowList([
+            propertiesGetNumber("Item1"),
+            propertiesGetNumber("Item2"),
+            propertiesGetNumber("Item3"),
+            propertiesGetNumber("Item4")
+        ]);
+
+        // Init the layout
+        initLayout();
         
         lastLock = propertiesGetBoolean("LastLock");
         
@@ -161,18 +197,21 @@ class emtbView extends WatchUi.DataField {
 
     function initialize() {
         System.println("Initializing...");
+        DataField.initialize();
+
         if(debugging)
         {
             System.println("Setting debugging props...");
             // quick test values
             applicationProperties.setValue("Item1", 2);
-            applicationProperties.setValue("Item2", 0);
+            applicationProperties.setValue("Item2", 3);
             applicationProperties.setValue("Item3", 1);
-            applicationProperties.setValue("Item4", 0);
+            applicationProperties.setValue("Item4", 5);
+            applicationProperties.setValue("Layout", 1);
         }
 
-        DataField.initialize();
         getUserSettings();
+
     }
 
     // remember a reference to ourself as it's useful, but can't see a way in CIQ to access this otherwise?! 
@@ -275,45 +314,66 @@ class emtbView extends WatchUi.DataField {
         return color;
     }
 
+    function horizontalLayout(i, dc, numActiveValues, padding)
+    {
+        var offset = (dc.getWidth() - 2 * padding) / numActiveValues / 2;
+        var x_label = ((dc.getWidth() - 2 * padding) * i / numActiveValues) + offset + padding;
+        var y_label = dc.getHeight() / 2 - 1.2 * dc.getFontHeight(Graphics.FONT_XTINY);
+        var x_value = x_label;
+        var y_value = dc.getHeight() / 2 - dc.getFontHeight(Graphics.FONT_LARGE) / 3;
+
+        return [x_label, y_label, x_value, y_value];
+    }
+
+    function verticalLayout(i, dc, numActiveValues, padding)
+    {
+        var offset = (dc.getHeight() - 2 * padding) / numActiveValues / 2;
+        var x_label = dc.getWidth() / 2;
+        var y_label = ((dc.getHeight() - 2 * padding) * i / numActiveValues) + offset + padding - 1.2 * dc.getFontHeight(Graphics.FONT_XTINY);
+        var x_value = x_label;
+        var y_value = ((dc.getHeight() - 2 * padding) * i / numActiveValues) + offset + padding - dc.getFontHeight(Graphics.FONT_LARGE) / 3;
+
+        return [x_label, y_label, x_value, y_value];
+    }
+
+    function diamondLayout(i, dc, numActiveValues, padding)
+    {
+        var retVal = [0, 0, 0, 0];
+        if (i == 0){
+            retVal = verticalLayout(0, dc, 3, padding);
+        } else if (i == 1)
+        {
+            retVal = horizontalLayout(0, dc, 2, padding);
+        } else if (i == 2)
+        {
+            retVal = horizontalLayout(1, dc, 2, padding);
+        } else if (i == 3)
+        {
+            retVal = verticalLayout(2, dc, 3, padding);
+        }
+        return retVal;
+    }
+
     // Draw the labels on the screen
-    function drawLabels(dc as Dc)
+    function drawLabelsValues(dc as Dc)
     {
         var numActiveValues = showList.size();
-        var x = 0.0f;
-        var y = dc.getHeight() / 2 - 1.2 * dc.getFontHeight(Graphics.FONT_XTINY);
-        var offset = (dc.getWidth() - 2 * padding) / numActiveValues / 2;
         dc.setColor(getForegroundColor(), Graphics.COLOR_TRANSPARENT);
-        
-        System.println("Drawing " + numActiveValues.toString() + " labels");
+
+        System.println("Drawing " + numActiveValues.toString() + " values and labels");
         for (var i=0; i<numActiveValues; i++)
         {
-            x = ((dc.getWidth() - 2 * padding) * i / numActiveValues) + offset + padding;
+            var positions = computeXY.invoke(i, dc, numActiveValues, padding);
             dc.drawText(
-                x,
-                y,
+                positions[0],
+                positions[1],
                 Graphics.FONT_XTINY,
                 labelsDict[showList[i]],
                 Graphics.TEXT_JUSTIFY_CENTER
             );
-        }
-    }
-
-    // Draw the labels on the screen
-    function drawValues(dc as Dc)
-    {
-        var numActiveValues = showList.size();
-        var x = 0.0f;
-        var y = dc.getHeight() / 2 - dc.getFontHeight(Graphics.FONT_LARGE) / 3;
-        var offset = (dc.getWidth() - 2 * padding) / numActiveValues / 2;
-        dc.setColor(getForegroundColor(), Graphics.COLOR_TRANSPARENT);
-        
-        System.println("Drawing " + numActiveValues.toString() + " values");
-        for (var i=0; i<numActiveValues; i++)
-        {
-            x = ((dc.getWidth() - 2 * padding) * i / numActiveValues) + offset + padding;
             dc.drawText(
-                x,
-                y,
+                positions[2],
+                positions[3],
                 Graphics.FONT_LARGE,
                 computeValueString(showList[i]),
                 Graphics.TEXT_JUSTIFY_CENTER
@@ -365,7 +425,7 @@ class emtbView extends WatchUi.DataField {
     // Display the value you computed here. This will be called
     // once a second when the data field is visible.
     function onUpdate(dc as Dc) as Void {
-        System.println("Updating...");
+        System.println("On update...");
 
         // could show status of scanning & pairing if we wanted
         if (bleHandler.isConnecting())
@@ -382,8 +442,8 @@ class emtbView extends WatchUi.DataField {
             
         } else
         {
-            drawLabels(dc);
-            drawValues(dc);
+            drawLabelsValues(dc);
         }
     }
+
 }
