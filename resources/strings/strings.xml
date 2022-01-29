@@ -7,6 +7,7 @@
     <string id="Item1Title">Item 1</string>
     <string id="Item2Title">Item 2</string>
     <string id="Item3Title">Item 3</string>
+    <string id="ModeNamesTitle">Assist Mode Names</string>
 
     <string id="ShowOff">Off</string>
     <string id="ShowBattery">Battery</string>
@@ -17,4 +18,7 @@
     <string id="ShowCadence">Cadence</string>
     <string id="ShowCurrentSpeed">Current Speed</string>
     <string id="ShowAssistanceLevel">Assistance Level</string>
+
+    <string id="ModeNamesDefault">Eco/Trail/Boost</string>
+    <string id="ModeNamesAlternate">Eco/Norm/High</string>
 </strings>

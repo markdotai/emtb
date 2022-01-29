@@ -6,5 +6,6 @@
     <property id="Item1" type="number">1</property>				<!-- default show battery -->
     <property id="Item2" type="number">0</property>				<!-- default off -->
     <property id="Item3" type="number">0</property>				<!-- default off -->
+    <property id="ModeNames" type="number">0</property>			<!-- which assist mode names to use -->
 
 </properties>

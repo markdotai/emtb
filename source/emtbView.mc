@@ -120,7 +120,7 @@ class emtbView extends baseView
 	const secondsWaitBattery = 15;		// only read the battery value every 15 seconds
 	var secondsSinceReadBattery = secondsWaitBattery;
 
-	var modeNames = [
+	var modeNamesDefault = [
 		"Off",
 		"Eco",
 		"Trail",
@@ -128,13 +128,32 @@ class emtbView extends baseView
 		"Walk",
 	];
 
-	var modeLetters = [
+	var modeLettersDefault = [
 		"O",
 		"E",
 		"T",
 		"B",
 		"W",
 	];
+
+	var modeNamesAlternate = [
+		"Off",
+		"Eco",
+		"Norm",
+		"High",
+		"Walk",
+	];
+
+	var modeLettersAlternate = [
+		"O",
+		"E",
+		"N",
+		"H",
+		"W",
+	];
+
+	var modeNames = modeNamesDefault;
+	var modeLetters = modeLettersDefault;
 
 	var connectCounter = 0;		// number of seconds spent scanning/connecting to a bike
 	
@@ -191,6 +210,18 @@ class emtbView extends baseView
     	showList[2] = propertiesGetNumber("Item3");
     	
 		lastLock = propertiesGetBoolean("LastLock");
+		
+		var modeNamesStyle = propertiesGetNumber("ModeNames");
+		if (modeNamesStyle==1) // 1 or 0 are the only valid values allowed
+		{
+			modeNames = modeNamesAlternate;
+			modeLetters = modeLettersAlternate;
+		}
+		else
+		{
+			modeNames = modeNamesDefault;
+			modeLetters = modeLettersDefault;
+		}
 		
 		// convert the MAC address string to a byte array
 		// (if the string is an invalid format, e.g. contains the letter Z, then the byte array will be null)
@@ -678,7 +709,7 @@ class emtbDelegate extends Ble.BleDelegate
 		// notifications - mode, gear
 		// is speed, distance, range, cadence anywhere in the data?
 		// get 3 notifications continuously:
-		// 1 = 02 XX 00 00 00 00 CB 28 00 00 (XX=02 is mode)
+		// 1 = 02 XX 00 00 00 00 CB 28 00 00 (XX=02 is mode, then speed 2 bytes, assistance level 1 byte, cadence 1 byte, maybe range 2 bytes? 0xCB=203, 0x28=40, 0xCB28=52008)
 		// 2 = 03 B6 5A 36 00 B6 5A 36 00 CC 00 AC 02 2F 00 47 00 60 00
 		// 3 = 00 00 00 FF FF YY 0B 80 80 80 0C F0 10 FF FF 0A 00 (YY=03 is gear if remember correctly)
 		// Mode is 00=off 01=eco 02=trail 03=boost 04=walk 
