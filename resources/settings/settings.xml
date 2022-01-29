@@ -54,4 +54,11 @@
         </settingConfig>
     </setting>
 
+    <setting propertyKey="@Properties.ModeNames" title="@Strings.ModeNamesTitle">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ModeNamesDefault</listEntry>
+            <listEntry value="1">@Strings.ModeNamesAlternate</listEntry>
+        </settingConfig>
+    </setting>
+
 </settings>
