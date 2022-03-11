@@ -3,6 +3,7 @@
 
     <string id="LastMACTitle">Last EMTB MAC Address</string>
     <string id="LastLockTitle">Lock to MAC Address</string>
+    <string id="LayoutTitle">Layout</string>
     <string id="Item1Title">Item 1</string>
     <string id="Item2Title">Item 2</string>
     <string id="Item3Title">Item 3</string>
@@ -30,4 +31,18 @@
     <string id="LabelCadence">CADEN</string>
     <string id="LabelAssistanceLevel">ASS-L</string>
     <string id="LabelSpeed">SPEED</string>
+
+    <!-- Fit Contribution Fields -->
+    <string id="BatteryField">Battery</string>
+    <string id="ConsumedBatteryField">Consumed Battery</string>
+    <string id="BatteryUnitField">%</string>
+    <string id="CadenceField">Cadence</string>
+    <string id="CadenceUnitField">RPM</string>
+    <string id="AssistanceLevelField">Assistance Level</string>
+    <string id="AssistanceLevelUnitField">-</string><!-- // assistance level unit? -->
+
+    <!-- Layout -->
+    <string id="HorizontalLayout">Horizontal</string>
+    <string id="VerticalLayout">Vertical</string>
+    <string id="DiamondLayout">Diamond</string>
 </strings>
