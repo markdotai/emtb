@@ -621,7 +621,7 @@ class emtbDelegate extends Ble.BleDelegate
 				// if there is no longer a paired device or it is not connected
 				// then we have disconnected ...		
 				var d = Ble.getPairedDevices().next();	// get first device (since we only connect to one at a time)
-				if (d==null || !d.isConnected())
+				if (d==null && !d.isConnected())
 				{
 					bleDisconnect();
 					state = State_Disconnected;
