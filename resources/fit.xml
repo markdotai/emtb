@@ -1,0 +1,36 @@
+<fitContributions>
+    <!-- GRAPH : Battery -->
+    <fitField id="0"
+        displayInChart="true"
+        sortOrder="0"
+        precision="2"
+        chartTitle="@Strings.BatteryField"
+        dataLabel="@Strings.BatteryField"
+        unitLabel="@Strings.BatteryUnitField"
+        fillColor="#0099FF" />
+    <!-- GRAPH : Cadence -->
+    <fitField id="1"
+        displayInChart="true"
+        sortOrder="1"
+        precision="2"
+        chartTitle="@Strings.CadenceField"
+        dataLabel="@Strings.CadenceField"
+        unitLabel="@Strings.CadenceUnitField"
+        fillColor="#0099FF" />
+    <!-- GRAPH : Assistance Level -->
+    <fitField id="2"
+        displayInChart="true"
+        sortOrder="2"
+        precision="2"
+        chartTitle="@Strings.AssistanceLevelField"
+        dataLabel="@Strings.AssistanceLevelField"
+        unitLabel="@Strings.AssistanceLevelUnitField"
+        fillColor="#0099FF" />
+    <!-- SUMMARY : Consumed Battery -->
+    <fitField id="3"
+        displayInActivitySummary="true"
+        sortOrder="3"
+        precision="2"
+        dataLabel="@Strings.ConsumedBatteryField"
+        unitLabel="@Strings.BatteryUnitField" />
+</fitContributions>
