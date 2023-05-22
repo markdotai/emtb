@@ -2,8 +2,7 @@ using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.BluetoothLowEnergy as Ble;
 using Toybox.Application;
-using Application.Properties as applicationProperties;
-using Application.Storage as applicationStorage;
+using Toybox.Lang;
 
 //class emtbView extends WatchUi.DataField
 //DataField.initialize();
@@ -160,7 +159,7 @@ class emtbView extends baseView
 	// Safely read a boolean value from user settings
 	function propertiesGetBoolean(p)
 	{
-		var v = applicationProperties.getValue(p);
+		var v = Application.Properties.getValue(p);
 		if ((v == null) || !(v instanceof Boolean))
 		{
 			v = false;
@@ -171,7 +170,7 @@ class emtbView extends baseView
 	// Safely read a number value from user settings
 	function propertiesGetNumber(p)
 	{
-		var v = applicationProperties.getValue(p);
+		var v = Application.Properties.getValue(p);
 		if ((v == null) || (v instanceof Boolean))
 		{
 			v = 0;
@@ -190,7 +189,7 @@ class emtbView extends baseView
 	// Safely read a string value from user settings
 	function propertiesGetString(p)
 	{	
-		var v = applicationProperties.getValue(p);
+		var v = Application.Properties.getValue(p);
 		if (v == null)
 		{
 			v = "";
@@ -250,7 +249,7 @@ class emtbView extends baseView
 			try
 			{
 		    	var s = StringUtil.convertEncodedString(newMACArray, {:fromRepresentation => StringUtil.REPRESENTATION_BYTE_ARRAY, :toRepresentation => StringUtil.REPRESENTATION_STRING_HEX});
-		    	applicationProperties.setValue("LastMAC", s.toUpper());
+		    	Application.Properties.setValue("LastMAC", s.toUpper());
 			}
 			catch (e)
 			{
